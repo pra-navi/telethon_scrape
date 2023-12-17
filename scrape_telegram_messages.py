@@ -18,7 +18,17 @@ for chat in chats:
     with TelegramClient('messages', api_id, api_hash) as client:
         for message in client.iter_messages(chat, offset_date=datetime.date.today() - datetime.timedelta(days=6), reverse=True): # right now it's set to get chat history from 6 days ago to current date
             print(message)
-            data = { "group" : chat, "sender" : message.sender_id, "text" : message.text, "date" : message.date}
+            data = { "message_id" : message.id, "group" : chat, "sender" : message.sender_id, "text" : message.text, "date" : message.date, "direct_reply_to" : message.reply_to_msg_id, "original_message_id": None }
+            
+            direct_reply_to = message.reply_to_msg_id
+            while direct_reply_to:
+                original_message_id = df.loc[df['message_id'] == direct_reply_to, 'message_id'].values
+                if original_message_id:
+                    data["original_message_id"] = original_message_id[0]
+                    direct_reply_to = df.loc[df['message_id'] == direct_reply_to, 'direct_reply_to'].values[0]
+                else:
+                    break
+            
             temp_df = pd.DataFrame(data, index=[0])
 
             df = pd.concat([temp_df, df.loc[:]]).reset_index(drop=True)
