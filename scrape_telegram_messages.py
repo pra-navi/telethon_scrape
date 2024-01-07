@@ -28,7 +28,7 @@ for chat in chats:
 
             # Print the message in the terminal of the developer for debugging purposes
             # print(message)
-            # print(cleaned_message_text)
+            print(cleaned_message_text)
 
             # Create a dictionary to store specific message fields that we want to extract
             data = { "message_id" : message.id, "group" : chat, "sender" : message.sender_id, "text" : cleaned_message_text, "date" : message.date, "direct_reply_to" : message.reply_to_msg_id, "original_message_id": None }
@@ -37,7 +37,7 @@ for chat in chats:
             direct_reply_to = message.reply_to_msg_id
             while direct_reply_to:
                 original_message_id = df.loc[df['message_id'] == direct_reply_to, 'message_id'].values
-                if original_message_id:
+                if original_message_id.size > 0:
                     data["original_message_id"] = original_message_id[0]
                     direct_reply_to = df.loc[df['message_id'] == direct_reply_to, 'direct_reply_to'].values[0]
                 else:
