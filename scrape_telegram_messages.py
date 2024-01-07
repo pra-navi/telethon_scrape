@@ -13,8 +13,8 @@ api_hash = config["telethon_credentials"]["api_hash"]
 # Specify the list of chats to scrape
 chats = ['sethisfychat']
 
-# Create an empty DataFrame to store the scraped data
-df = pd.DataFrame()
+# Create an empty DataFrame with column headers to store the scraped data
+df = pd.DataFrame(columns=["message_id", "group", "sender", "text", "date", "direct_reply_to", "original_message_id"])
 
 # Loop through each specified chat
 for chat in chats:
@@ -22,11 +22,16 @@ for chat in chats:
     with TelegramClient('messages', api_id, api_hash) as client:
         # Iterate over messages in the chat, starting from 6 days ago to the current date
         for message in client.iter_messages(chat, offset_date=datetime.date.today() - datetime.timedelta(days=6), reverse=True): # right now it's set to get chat history from 6 days ago to current date
+            
+            # Remove newline characters from the message text to help import into postgreSQL
+            cleaned_message_text = message.message.replace('\n', ' ')
+
             # Print the message in the terminal of the developer for debugging purposes
-            print(message)
+            # print(message)
+            # print(cleaned_message_text)
 
             # Create a dictionary to store specific message fields that we want to extract
-            data = { "message_id" : message.id, "group" : chat, "sender" : message.sender_id, "text" : message.message, "date" : message.date, "direct_reply_to" : message.reply_to_msg_id, "original_message_id": None }
+            data = { "message_id" : message.id, "group" : chat, "sender" : message.sender_id, "text" : cleaned_message_text, "date" : message.date, "direct_reply_to" : message.reply_to_msg_id, "original_message_id": None }
             
             # Extract information about the direct reply chain to find the original_message_id at the top of the reply chain for each message
             direct_reply_to = message.reply_to_msg_id
