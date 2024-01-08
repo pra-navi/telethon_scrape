@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 import os
 import configparser
+import numpy as np
 
 # Read Telegram API credentials from a configuration file
 config = configparser.ConfigParser()
@@ -49,8 +50,17 @@ for chat in chats:
             # Concatenate the temporary DataFrame with the main DataFrame
             df = pd.concat([temp_df, df.loc[:]]).reset_index(drop=True)
 
+# Set data types for those columns to be converted to integer type
+df['message_id'] = df['message_id'].astype(int)
+df['sender'] = df['sender'].astype(np.int64)
+df['direct_reply_to'] = df['direct_reply_to'].fillna(-1).astype(np.int64)
+df['original_message_id'] = df['original_message_id'].fillna(-1).astype(np.int64)
+
+# Confirm the data types of each column
+# print(df.dtypes)
+
 # Remove timezone information from the 'date' column
 df['date'] = df['date'].dt.tz_localize(None)
 
-# Save the DataFrame to an Excel file with the current date set as the filename
-df.to_excel(os.path.join(os.getcwd(), "data_{}.xlsx".format(datetime.date.today())), index=False) # file name is the date of retrieval
+# Save the DataFrame to a csv file with the current date set as the filename
+df.to_csv(os.path.join(os.getcwd(), "data_{}.csv".format(datetime.date.today())), index=False, header=False) # file name is the date of retrieval
